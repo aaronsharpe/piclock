@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 from display_driver import ST7789
 
 
-# TODO reboot, Spotify, calendar?, cpu monitor, weather
+# TODO async, retry+backoff for get post, reboot, autodim, calendar, cpu monitor, weather, scrolling spotify text
 
 
 def display_time(spotify_state, color):
@@ -170,7 +170,7 @@ def refresh_spotify_access_token(api_info):
     data = {'grant_type': 'refresh_token',
             'refresh_token': api_info['spotify_refresh_token']}
     p = post(url, data=data, headers=headers)
-    api_info['spotify_access_token'] = json.loads(p.text)['access_token']
+    api_info['spotify_access_token'] = json.loads(p.text)[]
 
     with open('.api_info.json', 'w') as f:
         json.dump(api_info, f)
