@@ -109,14 +109,14 @@ async def string_dims(draw, fontType, string):
 async def check_button_state(pi, button_state, button_to_pin):
     for button in button_state.keys():
         if not pi.read(button_to_pin[button]):
-            if not button_state[button]:
+            if button_state[button] == ButtonState.UNHELD:
                 button_state[button] = ButtonState.PRESSED
-            else:
+            elif button_state[button] == ButtonState.PRESSED or button_state[button] == ButtonState.HELD:
                 button_state[button] = ButtonState.HELD
         else:
-            if button_state[button]:
+            if button_state[button] == ButtonState.PRESSED or button_state[button] == ButtonState.HELD:
                 button_state[button] = ButtonState.RELEASED
-            else:
+            elif button_state[button] == ButtonState.RELEASED or button_state[button] == ButtonState.UNHELD:
                 button_state[button] = ButtonState.UNHELD
     await asyncio.sleep(0.01)
     return button_state
