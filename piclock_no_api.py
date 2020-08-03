@@ -214,12 +214,12 @@ async def main():
         if update_display:
             update_display = False
             if(clock_state['display'] == 'home'):
-                display_time(disp, clock_state['color'])
+                await display_time(disp, clock_state['color'])
             elif(clock_state['display'] == 'network'):
-                display_network(
+                await display_network(
                     disp, clock_state['net_info'], clock_state['color'])
             elif(clock_state['display'] == 'custom'):
-                display_custom(disp, 'fetching data...', clock_state['color'])
+                await display_custom(disp, 'fetching data...', clock_state['color'])
 
 loop = asyncio.get_event_loop()
 loop.create_task(main())
