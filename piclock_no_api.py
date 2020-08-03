@@ -31,7 +31,7 @@ class ButtonState(IntEnum):
     RELEASED = 3
 
 
-async def display_time(disp, spotify_state, color):
+async def display_time(disp, color):
     current_time, current_date = fetch_time()
 
     time_date_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
@@ -50,17 +50,6 @@ async def display_time(disp, spotify_state, color):
     x_pos = (disp.height/2)-str_width/2
     y_pos = (disp.width)/16 + 60
     draw.text((x_pos, y_pos), current_date, font=font, fill=color)
-
-    if spotify_state['is_playing']:
-        font = ImageFont.truetype('Minecraftia.ttf', 16)
-        x_pos = 2
-        y_pos = 170
-        draw.text((x_pos, y_pos),
-                  spotify_state['song_title'], font=font, fill=color)
-
-        y_pos += 30
-        draw.text((x_pos, y_pos),
-                  spotify_state['artist'], font=font, fill=color)
 
     time_date_screen = time_date_screen.rotate(180)
     disp.ShowImage(time_date_screen)
@@ -116,70 +105,6 @@ async def string_dims(draw, fontType, string):
     return string_height, string_width
 
 
-async def update_api_info(api_info):
-    await asyncio.sleep(1)
-    api_info, spotify_state = fetch_spotify(api_info)
-    return api_info, spotify_state
-
-
-async def fetch_spotify(api_info):
-    url = 'https://api.spotify.com/v1/me/player/currently-playing'
-    headers = {'Authorization': 'Bearer ' + api_info['spotify_access_token'],
-               'Accept': 'application/json', 'Content-Type': 'application/json'}
-
-    try:
-        resp = await session.request(method='GET', url=url, headers=headers)
-    except:
-        print('timed out attempting to reach:' + url)
-
-    if resp.status_code == 204:  # valid access code, not active
-        return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
-    elif resp.status_code == 200:  # valid access code, active
-        data = json.loads(resp.text)
-        is_playing = data['is_playing']
-        artist = data['item']['artists'][0]['name']
-        song_title = data['item']['name']
-        return api_info, {'is_playing': is_playing, 'artist': artist, 'song_title': song_title}
-    else:  # invalid access code or other error
-        print(resp.status_code)
-        api_info = await refresh_spotify_access_token(api_info)
-        return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
-
-
-async def refresh_spotify_access_token(api_info):
-    url = 'https://accounts.spotify.com/api/token'
-    headers = {'Authorization': 'Basic ' +
-               api_info['spotify_id_secret_encoded']}
-    data = {'grant_type': 'refresh_token',
-            'refresh_token': api_info['spotify_refresh_token']}
-
-    try:
-        p = await session.request(method='POST', url=url, data=data, headers=headers)
-    except:
-        print('timed out attempting to reach:' + url)
-
-    api_info['spotify_access_token'] = await json.loads(p.text)['access_token']
-
-    with open('.api_info.json', 'w') as f:
-        json.dump(api_info, f)
-    return api_info
-
-
-async def fetch_net_info():
-    # Collect network information by parsing command line outputs
-    try:
-        resp = await session.request(method='GET', url='https://api.ipify.org')
-        ipaddress = await resp.text
-    except:
-        print('timed out attempting to reach:' + 'https://api.ipify.org')
-    # netmask = os.popen("ifconfig wlan0 | grep 'Mask' | awk -F: '{print $4}'").read()
-    gateway = os.popen("route -n | grep '^0.0.0.0' | awk '{print $2}'").read()
-    ssid = os.popen(
-        "iwconfig wlan0 | grep 'ESSID' | awk '{print $4}' | awk -F\\\" '{print $2}'").read()
-
-    return (ssid, ipaddress, gateway)
-
-
 async def fetch_time():
     current_time = time.strftime('%H:%M')
     current_date = time.strftime('%m/%d/%Y')
@@ -225,7 +150,7 @@ async def button_release_handler(disp, pi, clock_state, cyclers, button):
             os.popen(
                 'sudo ip link set wlan0 down; sleep 5; sudo ip link set wlan0 up')
             await asyncio.sleep(0.1)
-            clock_state['net_info'] = fetch_net_info()
+            clock_state['net_info'] = ('ssid', 'ipaddress', 'gateway')
             await asyncio.sleep(0.1)
             return clock_state, True
         elif display == 'custom':
@@ -264,13 +189,9 @@ async def main():
     cyclers = {'display': display_cycle,
                'bl_dc': bl_cycle, 'color': color_cycle}
 
-    # Initial fetching
-    with open('.api_info.json', 'r') as f:
-        api_info = json.load(f)
-    api_info, spotify_state = fetch_spotify(api_info)
     clock_prev, _ = fetch_time()
     clock_state['time'] = clock_prev
-    clock_state['net_info'] = fetch_net_info()
+    clock_state['net_info'] = ('ssid', 'ipaddress', 'gateway')
 
     while True:
         button_state = await check_button_state(pi, button_state, button_to_pin)
@@ -280,24 +201,20 @@ async def main():
                 clock_state, update_display = await button_release_handler(
                     disp, pi, clock_state, cyclers, button)
 
-        api_info, spotify_state = await update_api_info(api_info)
-
         clock_cur, _ = fetch_time()
         if clock_cur != clock_state['time']:
             update_display = True
             clock_state['time'] = clock_cur
 
-        if spotify_state['is_playing']:
-            update_display = True
-
         if update_display:
             update_display = False
             if(clock_state['display'] == 'home'):
-                display_time(spotify_state, clock_state['color'])
+                display_time(disp, clock_state['color'])
             elif(clock_state['display'] == 'network'):
-                display_network(clock_state['net_info'], clock_state['color'])
+                display_network(
+                    disp, clock_state['net_info'], clock_state['color'])
             elif(clock_state['display'] == 'custom'):
-                display_custom('fetching data...', clock_state['color'])
+                display_custom(disp, 'fetching data...', clock_state['color'])
 
 loop = asyncio.get_event_loop()
 loop.creat_task(main())
