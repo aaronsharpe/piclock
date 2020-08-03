@@ -180,7 +180,7 @@ async def main():
     update_display = True
 
     # Cycling variables
-    bl_cycle = cycle([0, 5, 10, 25, 50, 75, 100])
+    bl_cycle = cycle([100, 75, 50, 25, 5, 0])
     display_cycle = cycle(['home', 'network', 'custom'])
     color_cycle = cycle(['WHITE', 'RED', 'GREEN', 'BLUE'])
 
@@ -195,6 +195,7 @@ async def main():
 
     while True:
         button_state = await check_button_state(pi, button_state, button_to_pin)
+        await slow_test_function()
 
         for button in button_state.keys():
             if button_state[button] == ButtonState.RELEASED:
