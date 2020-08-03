@@ -32,7 +32,8 @@ class ButtonState(IntEnum):
 
 
 async def display_time(disp, color):
-    current_time, current_date = fetch_time()
+    current_time = time.strftime('%H:%M')
+    current_date = time.strftime('%m/%d/%Y')
 
     time_date_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(time_date_screen)
@@ -103,12 +104,6 @@ async def string_dims(draw, fontType, string):
         string_width += char_width
 
     return string_height, string_width
-
-
-async def fetch_time():
-    current_time = time.strftime('%H:%M')
-    current_date = time.strftime('%m/%d/%Y')
-    return current_time, current_date
 
 
 async def check_button_state(pi, button_state, button_to_pin):
