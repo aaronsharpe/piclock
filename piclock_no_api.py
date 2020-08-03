@@ -40,14 +40,14 @@ async def display_time(disp, color):
 
     # Time
     font = ImageFont.truetype('Minecraftia.ttf', 48)
-    _, str_width = await string_dims(draw, font, current_time)
+    _, str_width = string_dims(draw, font, current_time)
     x_pos = (disp.height/2)-str_width/2
     y_pos = 10
     draw.text((x_pos, y_pos), current_time, font=font, fill=color)
 
     # Date
     font = ImageFont.truetype('Minecraftia.ttf', 16)
-    _, str_width = await string_dims(draw, font, current_date)
+    _, str_width = string_dims(draw, font, current_date)
     x_pos = (disp.height/2)-str_width/2
     y_pos = (disp.width)/16 + 60
     draw.text((x_pos, y_pos), current_date, font=font, fill=color)
@@ -94,7 +94,7 @@ async def display_custom(disp, text, color):
     disp.ShowImage(custom_screen)
 
 
-async def string_dims(draw, fontType, string):
+def string_dims(draw, fontType, string):
     string_height = 0
     string_width = 0
 
