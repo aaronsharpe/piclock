@@ -31,7 +31,7 @@ class ButtonState(IntEnum):
     RELEASED = 3
 
 
-async def display_time(disp, color):
+def display_time(disp, color):
     current_time = time.strftime('%H:%M')
     current_date = time.strftime('%m/%d/%Y')
 
@@ -56,7 +56,7 @@ async def display_time(disp, color):
     disp.ShowImage(time_date_screen)
 
 
-async def display_network(disp, net_info, color):
+def display_network(disp, net_info, color):
     network_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(network_screen)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
@@ -80,7 +80,7 @@ async def display_network(disp, net_info, color):
     disp.ShowImage(network_screen)
 
 
-async def display_custom(disp, text, color):
+def display_custom(disp, text, color):
     custom_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(custom_screen)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
@@ -210,12 +210,12 @@ async def main():
         if update_display:
             update_display = False
             if(clock_state['display'] == 'home'):
-                await display_time(disp, clock_state['color'])
+                display_time(disp, clock_state['color'])
             elif(clock_state['display'] == 'network'):
-                await display_network(
+                display_network(
                     disp, clock_state['net_info'], clock_state['color'])
             elif(clock_state['display'] == 'custom'):
-                await display_custom(disp, 'fetching data...', clock_state['color'])
+                display_custom(disp, 'fetching data...', clock_state['color'])
 
 loop = asyncio.get_event_loop()
 loop.create_task(main())
