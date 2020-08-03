@@ -157,6 +157,11 @@ async def button_release_handler(disp, pi, clock_state, cyclers, button):
             return clock_state, False
 
 
+async def slow_test_function():
+    print('in the slow test function')
+    await asyncio.sleep(1)
+
+
 async def main():
     # Init pins and buttons
     pi = pigpio.pi()
@@ -217,5 +222,5 @@ async def main():
                 display_custom(disp, 'fetching data...', clock_state['color'])
 
 loop = asyncio.get_event_loop()
-loop.creat_task(main())
+loop.create_task(main())
 loop.run_forever()
