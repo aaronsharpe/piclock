@@ -194,7 +194,7 @@ async def main():
     cyclers = {'display': display_cycle,
                'bl_dc': bl_cycle, 'color': color_cycle}
 
-    clock_prev, _ = fetch_time()
+    clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
     clock_state['net_info'] = ('ssid', 'ipaddress', 'gateway')
 
@@ -206,7 +206,7 @@ async def main():
                 clock_state, update_display = await button_release_handler(
                     disp, pi, clock_state, cyclers, button)
 
-        clock_cur, _ = fetch_time()
+        clock_cur = time.strftime('%H:%M')
         if clock_cur != clock_state['time']:
             update_display = True
             clock_state['time'] = clock_cur
