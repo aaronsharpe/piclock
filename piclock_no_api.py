@@ -195,7 +195,7 @@ async def main():
 
     while True:
         button_state = await check_button_state(pi, button_state, button_to_pin)
-        asyncio.create_task(slow_test_function())
+        asyncio.ensure_future(slow_test_function(), loop=loop)
 
         for button in button_state.keys():
             if button_state[button] == ButtonState.RELEASED:
