@@ -260,7 +260,7 @@ async def main():
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
     api_info, spotify_state = await fetch_spotify(api_info)
-    clock_prev, _ = time.strftime('%H:%M')
+    clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
     clock_state['net_info'] = fetch_net_info()
 
