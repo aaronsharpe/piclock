@@ -154,7 +154,8 @@ async def refresh_spotify_access_token(api_info):
     async with aiohttp.ClientSession() as session:
         p = await session.request(method='POST', url=url, data=data, headers=headers)
 
-    api_info['spotify_access_token'] = await json.loads(p.text)['access_token']
+    pjson = await p.json()
+    api_info['spotify_access_token'] = pjson['access_token']
 
     with open('.api_info.json', 'w') as f:
         json.dump(api_info, f)
