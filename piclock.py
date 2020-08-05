@@ -139,7 +139,7 @@ async def fetch_spotify(api_info):
         song_title = data['item']['name']
         return api_info, {'is_playing': is_playing, 'artist': artist, 'song_title': song_title}
     else:  # invalid access code or other error
-        print('Spotify request failed error:' + srt(resp.status))
+        print('Spotify request failed error:' + str(resp.status))
         api_info = await refresh_spotify_access_token(api_info)
         return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
 
