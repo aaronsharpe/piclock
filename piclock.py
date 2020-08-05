@@ -267,7 +267,7 @@ async def main():
     # Initial fetching
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
-    api_info, spotify_state = fetch_spotify(api_info)
+    api_info, spotify_state = await fetch_spotify(api_info)
     clock_prev, _ = fetch_time()
     clock_state['time'] = clock_prev
     clock_state['net_info'] = fetch_net_info()
