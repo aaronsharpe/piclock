@@ -127,10 +127,10 @@ async def fetch_spotify(api_info):
     headers = {'Authorization': 'Bearer ' + api_info['spotify_access_token'],
                'Accept': 'application/json', 'Content-Type': 'application/json'}
 
-    try:
-        resp = await session.request(method='GET', url=url, headers=headers)
-    except:
-        print('timed out attempting to reach:' + url)
+    #try:
+    resp = await session.request(method='GET', url=url, headers=headers)
+    #except:
+    #   print('timed out attempting to reach:' + url)
 
     if resp.status_code == 204:  # valid access code, not active
         return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
