@@ -139,7 +139,7 @@ async def fetch_spotify(api_info):
         song_title = data['item']['name']
         return api_info, {'is_playing': is_playing, 'artist': artist, 'song_title': song_title}
     else:  # invalid access code or other error
-        print(resp.status)
+        print('Spotify request failed error:' + srt(resp.status))
         api_info = await refresh_spotify_access_token(api_info)
         return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
 
@@ -151,7 +151,8 @@ async def refresh_spotify_access_token(api_info):
     data = {'grant_type': 'refresh_token',
             'refresh_token': api_info['spotify_refresh_token']}
 
-    p = await session.request(method='POST', url=url, data=data, headers=headers)
+    async with aiohttp.ClientSession() as session:
+        p = await session.request(method='POST', url=url, data=data, headers=headers)
 
     api_info['spotify_access_token'] = await json.loads(p.text)['access_token']
 
