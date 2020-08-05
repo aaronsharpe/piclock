@@ -274,13 +274,12 @@ async def main():
 
     while True:
         button_state = await check_button_state(pi, button_state, button_to_pin)
-
         for button in button_state.keys():
             if button_state[button] == ButtonState.RELEASED:
                 clock_state, update_display = await button_release_handler(
                     disp, pi, clock_state, cyclers, button)
 
-        api_info, spotify_state = await update_api_info(api_info)
+        api_info, spotify_state = asyncio.ensure_future(update_api_info(api_info), loop=loop)
 
         clock_cur, _ = fetch_time()
         if clock_cur != clock_state['time']:
@@ -293,11 +292,13 @@ async def main():
         if update_display:
             update_display = False
             if(clock_state['display'] == 'home'):
-                display_time(spotify_state, clock_state['color'])
+                display_time(disp, spotify_state, clock_state['color'])
             elif(clock_state['display'] == 'network'):
-                display_network(clock_state['net_info'], clock_state['color'])
+                display_network(
+                    disp, clock_state['net_info'], clock_state['color'])
             elif(clock_state['display'] == 'custom'):
-                display_custom('fetching data...', clock_state['color'])
+                display_custom(disp, 'fetching data...', clock_state['color'])
+
 
 loop = asyncio.get_event_loop()
 loop.creat_task(main())
