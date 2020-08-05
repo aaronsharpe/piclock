@@ -127,22 +127,19 @@ async def fetch_spotify(api_info):
     headers = {'Authorization': 'Bearer ' + api_info['spotify_access_token'],
                'Accept': 'application/json', 'Content-Type': 'application/json'}
 
-    #try:
     async with aiohttp.ClientSession() as session:
         resp = await session.request(method='GET', url=url, headers=headers)
-    #except:
-    #   print('timed out attempting to reach:' + url)
 
-    if resp.status_code == 204:  # valid access code, not active
+    if resp.status == 204:  # valid access code, not active
         return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
-    elif resp.status_code == 200:  # valid access code, active
+    elif resp.status == 200:  # valid access code, active
         data = json.loads(resp.text)
         is_playing = data['is_playing']
         artist = data['item']['artists'][0]['name']
         song_title = data['item']['name']
         return api_info, {'is_playing': is_playing, 'artist': artist, 'song_title': song_title}
     else:  # invalid access code or other error
-        print(resp.status_code)
+        print(resp.status)
         api_info = await refresh_spotify_access_token(api_info)
         return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
 
@@ -154,10 +151,7 @@ async def refresh_spotify_access_token(api_info):
     data = {'grant_type': 'refresh_token',
             'refresh_token': api_info['spotify_refresh_token']}
 
-    try:
-        p = await session.request(method='POST', url=url, data=data, headers=headers)
-    except:
-        print('timed out attempting to reach:' + url)
+    p = await session.request(method='POST', url=url, data=data, headers=headers)
 
     api_info['spotify_access_token'] = await json.loads(p.text)['access_token']
 
