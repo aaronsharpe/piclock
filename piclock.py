@@ -128,7 +128,8 @@ async def fetch_spotify(api_info):
                'Accept': 'application/json', 'Content-Type': 'application/json'}
 
     #try:
-    resp = await session.request(method='GET', url=url, headers=headers)
+    async with aiohttp.ClientSession() as session:
+        resp = await session.request(method='GET', url=url, headers=headers)
     #except:
     #   print('timed out attempting to reach:' + url)
 
