@@ -32,7 +32,8 @@ class ButtonState(IntEnum):
 
 
 async def display_time(disp, spotify_state, color):
-    current_time, current_date = fetch_time()
+    current_time = time.strftime('%H:%M')
+    current_date = time.strftime('%m/%d/%Y')
 
     time_date_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(time_date_screen)
@@ -177,12 +178,6 @@ async def fetch_net_info():
     return (ssid, ipaddress, gateway)
 
 
-async def fetch_time():
-    current_time = time.strftime('%H:%M')
-    current_date = time.strftime('%m/%d/%Y')
-    return current_time, current_date
-
-
 async def check_button_state(pi, button_state, button_to_pin):
     for button in button_state.keys():
         if not pi.read(button_to_pin[button]):
@@ -265,7 +260,7 @@ async def main():
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
     api_info, spotify_state = await fetch_spotify(api_info)
-    clock_prev, _ = fetch_time()
+    clock_prev, _ = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
     clock_state['net_info'] = fetch_net_info()
 
@@ -278,7 +273,7 @@ async def main():
 
         api_info, spotify_state = asyncio.ensure_future(update_api_info(api_info), loop=loop)
 
-        clock_cur, _ = fetch_time()
+        clock_cur = time.strftime('%H:%M')
         if clock_cur != clock_state['time']:
             update_display = True
             clock_state['time'] = clock_cur
