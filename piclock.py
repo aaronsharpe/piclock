@@ -216,7 +216,7 @@ async def button_release_handler(disp, pi, clock_state, cyclers, button):
             os.popen(
                 'sudo ip link set wlan0 down; sleep 5; sudo ip link set wlan0 up')
             await asyncio.sleep(0.1)
-            clock_state['net_info'] = fetch_net_info()
+            clock_state['net_info'] = await fetch_net_info()
             await asyncio.sleep(0.1)
             return clock_state, True
         elif display == 'custom':
@@ -261,7 +261,7 @@ async def main():
     api_info, spotify_state = await fetch_spotify(api_info)
     clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
-    clock_state['net_info'] = fetch_net_info()
+    clock_state['net_info'] = await fetch_net_info()
 
     while True:
         button_state = await check_button_state(pi, button_state, button_to_pin)
