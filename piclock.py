@@ -119,7 +119,7 @@ async def string_dims(draw, fontType, string):
 
 async def update_api_info(api_info):
     await asyncio.sleep(1)
-    api_info, spotify_state = fetch_spotify(api_info)
+    api_info, spotify_state = await fetch_spotify(api_info)
     return api_info, spotify_state
 
 
