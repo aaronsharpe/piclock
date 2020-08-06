@@ -165,11 +165,10 @@ async def refresh_spotify_access_token(api_info):
 
 async def fetch_net_info():
     # Collect network information by parsing command line outputs
-    try:
+    async with aiohttp.ClientSession() as session:
         resp = await session.request(method='GET', url='https://api.ipify.org')
-        ipaddress = await resp.text
-    except:
-        print('timed out attempting to reach:' + 'https://api.ipify.org')
+    ipaddress = await resp.text
+
     # netmask = os.popen("ifconfig wlan0 | grep 'Mask' | awk -F: '{print $4}'").read()
     gateway = os.popen("route -n | grep '^0.0.0.0' | awk '{print $2}'").read()
     ssid = os.popen(
