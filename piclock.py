@@ -258,7 +258,7 @@ async def periodic_task(tau, f, *args):
         await asyncio.sleep(tau)
 
 
-async def main():
+def main():
     # Init pins and buttons
     pi = pigpio.pi()
     pi.set_mode(24, pigpio.OUTPUT)
@@ -293,10 +293,10 @@ async def main():
     # Initial fetching
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
-    api_info, spotify_state = await fetch_spotify(api_info)
+    api_info, spotify_state = fetch_spotify(api_info)
     clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
-    clock_state['net_info'] = await fetch_net_info()
+    clock_state['net_info'] = fetch_net_info()
 
     # Setup and run event loop
     loop = asyncio.get_event_loop()
@@ -307,5 +307,6 @@ async def main():
         0.1, display_handler, update_display, disp, clock_state, spotify_state))
     loop.run_forever()
 
+
 if __name__ == '__main__':
-    await main()
+    main()
