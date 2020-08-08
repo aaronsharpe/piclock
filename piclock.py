@@ -178,7 +178,7 @@ async def fetch_net_info():
 
 
 async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyclers):
-    button_state = check_button_state(pi, button_state, button_to_pin)
+    button_state = await check_button_state(pi, button_state, button_to_pin)
 
     for button in button_state.keys():
         if button_state[button] == ButtonState.PRESSED:
@@ -189,14 +189,14 @@ async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyc
 async def check_button_state(pi, button_state, button_to_pin):
     for button in button_state.keys():
         if not pi.read(button_to_pin[button]):
-            if not button_state[button]:
+            if button_state[button] == ButtonState.UNHELD:
                 button_state[button] = ButtonState.PRESSED
-            else:
+            elif button_state[button] == ButtonState.PRESSED or button_state[button] == ButtonState.HELD:
                 button_state[button] = ButtonState.HELD
         else:
-            if button_state[button]:
+            if button_state[button] == ButtonState.PRESSED or button_state[button] == ButtonState.HELD:
                 button_state[button] = ButtonState.RELEASED
-            else:
+            elif button_state[button] == ButtonState.RELEASED or button_state[button] == ButtonState.UNHELD:
                 button_state[button] = ButtonState.UNHELD
 
     return button_state
@@ -307,7 +307,11 @@ def main():
     # API task
     display_task = loop.create_task(periodic_task(
         0.1, display_handler, update_display, disp, clock_state, spotify_state))
-    loop.run_forever()
+
+    try:
+        loop.run_forever()
+    except(KeyboardInterrupt, SystemExit):
+        pass
 
 
 if __name__ == '__main__':
