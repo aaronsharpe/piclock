@@ -258,7 +258,7 @@ async def periodic_task(tau, f, *args):
         await asyncio.sleep(tau)
 
 
-def main():
+async def main():
     # Init pins and buttons
     pi = pigpio.pi()
     pi.set_mode(24, pigpio.OUTPUT)
@@ -307,6 +307,5 @@ def main():
         0.1, display_handler, update_display, disp, clock_state, spotify_state))
     loop.run_forever()
 
-
 if __name__ == '__main__':
-    main()
+    await main()
