@@ -31,7 +31,7 @@ class ButtonState(IntEnum):
     RELEASED = 3
 
 
-async def display_time(disp, spotify_state, color):
+def display_time(disp, spotify_state, color):
     current_time = time.strftime('%H:%M')
     current_date = time.strftime('%m/%d/%Y')
 
@@ -67,7 +67,7 @@ async def display_time(disp, spotify_state, color):
     disp.ShowImage(time_date_screen)
 
 
-async def display_network(disp, net_info, color):
+def display_network(disp, net_info, color):
     network_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(network_screen)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
@@ -91,7 +91,7 @@ async def display_network(disp, net_info, color):
     disp.ShowImage(network_screen)
 
 
-async def display_custom(disp, text, color):
+def display_custom(disp, text, color):
     custom_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(custom_screen)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
@@ -105,7 +105,7 @@ async def display_custom(disp, text, color):
     disp.ShowImage(custom_screen)
 
 
-async def string_dims(draw, fontType, string):
+def string_dims(draw, fontType, string):
     string_height = 0
     string_width = 0
 
