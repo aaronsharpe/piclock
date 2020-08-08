@@ -117,7 +117,7 @@ def string_dims(draw, fontType, string):
     return string_height, string_width
 
 
-async def api_handler(api_info):
+async def api_handler(api_info, spotify_state):
     api_info, spotify_state = await fetch_spotify(api_info)
     return api_info, spotify_state
 
@@ -298,7 +298,7 @@ def main():
     # Initial fetching
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
-    loop.run_until_complete(fetch_spotify(api_info))
+    api_info, spotify_state = loop.run_until_complete(fetch_spotify(api_info))
     clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
     clock_state['net_info'] = loop.run_until_complete(fetch_net_info())
@@ -308,7 +308,7 @@ def main():
     loop.create_task(periodic_task(
         0.01, button_handler, pi, disp, button_state, button_to_pin, clock_state, cyclers))
 
-    loop.create_task(periodic_task(1, api_handler, api_info))
+    loop.create_task(periodic_task(1, api_handler, api_info, spotify_state))
 
     loop.create_task(periodic_task(
         0.1, display_handler, update_display, disp, clock_state, spotify_state))
