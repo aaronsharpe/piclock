@@ -298,7 +298,7 @@ def main():
     # Initial fetching
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
-    api_info, spotify_state = loop.run_until_complete(fetch_spotify(api_info))
+    loop.run_until_complete(fetch_spotify(api_info))
     clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
     clock_state['net_info'] = loop.run_until_complete(fetch_net_info())
