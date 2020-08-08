@@ -239,6 +239,7 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
 async def display_handler(update_display, disp, clock_state, spotify_state):
     print(update_display)
     print(spotify_state)
+    print(clock_state)
     clock_cur = time.strftime('%H:%M')
     if clock_cur != clock_state['time']:
         update_display = True
@@ -256,6 +257,7 @@ async def display_handler(update_display, disp, clock_state, spotify_state):
                 disp, clock_state['net_info'], clock_state['color'])
         elif(clock_state['display'] == 'custom'):
             display_custom(disp, 'fetching data...', clock_state['color'])
+    return update_display
 
 
 async def periodic_task(tau, f, *args):
