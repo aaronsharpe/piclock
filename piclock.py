@@ -143,7 +143,8 @@ async def fetch_spotify(api_info):
     else:  # invalid access code or other error
         print('Spotify request failed error:' + str(resp.status))
         api_info = await refresh_spotify_access_token(api_info)
-        return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
+        spotify_state = {'is_playing': False, 'artist': '', 'song_title': ''}
+        return api_info, spotify_state
 
 
 async def refresh_spotify_access_token(api_info):
@@ -236,6 +237,8 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
 
 
 async def display_handler(update_display, disp, clock_state, spotify_state):
+    print(update_display)
+    print(spotify_state)
     clock_cur = time.strftime('%H:%M')
     if clock_cur != clock_state['time']:
         update_display = True
