@@ -117,8 +117,7 @@ def string_dims(draw, fontType, string):
     return string_height, string_width
 
 
-async def update_api_info(api_info):
-    await asyncio.sleep(1)
+async def api_handler(api_info):
     api_info, spotify_state = await fetch_spotify(api_info)
     return api_info, spotify_state
 
@@ -184,6 +183,8 @@ async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyc
         if button_state[button] == ButtonState.PRESSED:
             clock_state, update_display = await button_press_handler(
                 disp, pi, clock_state, cyclers, button)
+            return clock_state, update_display
+    return clock_state, False
 
 
 async def check_button_state(pi, button_state, button_to_pin):
@@ -254,7 +255,7 @@ async def display_handler(update_display, disp, clock_state, spotify_state):
 
 async def periodic_task(tau, f, *args):
     while True:
-        results = await f(*args)
+        await f(*args)
         await asyncio.sleep(tau)
 
 
@@ -302,10 +303,12 @@ def main():
 
     # Setup and run event loop
 
-    button_handler_task = loop.create_task(periodic_task(
+    loop.create_task(periodic_task(
         0.01, button_handler, pi, disp, button_state, button_to_pin, clock_state, cyclers))
-    # API task
-    display_task = loop.create_task(periodic_task(
+
+    loop.create_task(periodic_task(1, api_handler, api_info))
+
+    loop.create_task(periodic_task(
         0.1, display_handler, update_display, disp, clock_state, spotify_state))
 
     try:
