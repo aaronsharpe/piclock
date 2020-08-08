@@ -290,16 +290,18 @@ def main():
     cyclers = {'display': display_cycle,
                'bl_dc': bl_cycle, 'color': color_cycle}
 
+    loop = asyncio.get_event_loop()
+
     # Initial fetching
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
-    api_info, spotify_state = fetch_spotify(api_info)
+    api_info, spotify_state = loop.run_until_complete(fetch_spotify(api_info))
     clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
-    clock_state['net_info'] = fetch_net_info()
+    clock_state['net_info'] = loop.run_until_complete(fetch_net_info())
 
     # Setup and run event loop
-    loop = asyncio.get_event_loop()
+
     button_handler_task = loop.create_task(periodic_task(
         0.01, button_handler, pi, disp, button_state, button_to_pin, clock_state, cyclers))
     # API task
