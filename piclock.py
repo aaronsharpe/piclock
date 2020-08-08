@@ -177,6 +177,15 @@ async def fetch_net_info():
     return (ssid, ipaddress, gateway)
 
 
+async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyclers):
+    button_state = check_button_state(pi, button_state, button_to_pin)
+
+    for button in button_state.keys():
+        if button_state[button] == ButtonState.PRESSED:
+            clock_state, update_display = await button_press_handler(
+                disp, pi, clock_state, cyclers, button)
+
+
 async def check_button_state(pi, button_state, button_to_pin):
     for button in button_state.keys():
         if not pi.read(button_to_pin[button]):
@@ -189,11 +198,11 @@ async def check_button_state(pi, button_state, button_to_pin):
                 button_state[button] = ButtonState.RELEASED
             else:
                 button_state[button] = ButtonState.UNHELD
-    await asyncio.sleep(0.01)
+
     return button_state
 
 
-async def button_release_handler(disp, pi, clock_state, cyclers, button):
+async def button_press_handler(disp, pi, clock_state, cyclers, button):
     if button == 'L':
         bl_dc = next(cyclers['bl_dc'])
         clock_state['bl_dc'] = bl_dc
@@ -221,6 +230,32 @@ async def button_release_handler(disp, pi, clock_state, cyclers, button):
             return clock_state, True
         elif display == 'custom':
             return clock_state, False
+
+
+async def display_handler(update_display, disp, clock_state, spotify_state):
+    clock_cur = time.strftime('%H:%M')
+    if clock_cur != clock_state['time']:
+        update_display = True
+        clock_state['time'] = clock_cur
+
+    if spotify_state['is_playing']:
+        update_display = True
+
+    if update_display:
+        update_display = False
+        if(clock_state['display'] == 'home'):
+            display_time(disp, spotify_state, clock_state['color'])
+        elif(clock_state['display'] == 'network'):
+            display_network(
+                disp, clock_state['net_info'], clock_state['color'])
+        elif(clock_state['display'] == 'custom'):
+            display_custom(disp, 'fetching data...', clock_state['color'])
+
+
+async def periodic_task(tau, f, *args):
+    while True:
+        results = await f(*args)
+        await asyncio.sleep(tau)
 
 
 async def main():
@@ -263,34 +298,14 @@ async def main():
     clock_state['time'] = clock_prev
     clock_state['net_info'] = await fetch_net_info()
 
-    while True:
-        button_state = await check_button_state(pi, button_state, button_to_pin)
-        for button in button_state.keys():
-            if button_state[button] == ButtonState.RELEASED:
-                clock_state, update_display = await button_release_handler(
-                    disp, pi, clock_state, cyclers, button)
+    # Setup and run event loop
+    loop = asyncio.get_event_loop()
+    button_handler_task = loop.create_task(periodic_task(
+        0.01, button_handler, pi, disp, button_state, button_to_pin, clock_state, cyclers))
+    # API task
+    display_task = loop.create_task(periodic_task(
+        0.1, display_handler, update_display, disp, clock_state, spotify_state))
+    loop.run_forever()
 
-        api_info, spotify_state = asyncio.ensure_future(update_api_info(api_info), loop=loop)
-
-        clock_cur = time.strftime('%H:%M')
-        if clock_cur != clock_state['time']:
-            update_display = True
-            clock_state['time'] = clock_cur
-
-        if spotify_state['is_playing']:
-            update_display = True
-
-        if update_display:
-            update_display = False
-            if(clock_state['display'] == 'home'):
-                display_time(disp, spotify_state, clock_state['color'])
-            elif(clock_state['display'] == 'network'):
-                display_network(
-                    disp, clock_state['net_info'], clock_state['color'])
-            elif(clock_state['display'] == 'custom'):
-                display_custom(disp, 'fetching data...', clock_state['color'])
-
-
-loop = asyncio.get_event_loop()
-loop.create_task(main())
-loop.run_forever()
+if __name__ == '__main__':
+    main()
