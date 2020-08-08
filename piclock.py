@@ -133,7 +133,7 @@ async def fetch_spotify(api_info):
     if resp.status == 204:  # valid access code, not active
         return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
     elif resp.status == 200:  # valid access code, active
-        data = json.loads(resp.text)
+        data = await resp.json()
         is_playing = data['is_playing']
         artist = data['item']['artists'][0]['name']
         song_title = data['item']['name']
