@@ -186,8 +186,9 @@ async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyc
         if button_state[button] == ButtonState.PRESSED:
             clock_state, update_display = await button_press_handler(
                 disp, pi, clock_state, cyclers, button)
-            return clock_state, update_display
-    return clock_state, False
+        else:
+            update_display = False
+    return clock_state, update_display
 
 
 async def check_button_state(pi, button_state, button_to_pin):
