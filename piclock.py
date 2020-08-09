@@ -117,8 +117,9 @@ def string_dims(draw, fontType, string):
     return string_height, string_width
 
 
-async def api_handler(api_info, spotify_state):
-    await fetch_spotify(api_info, spotify_state)
+async def api_handler(clock_state, api_info, spotify_state):
+    if clock_state['display'] == 'home':
+        await fetch_spotify(api_info, spotify_state)
 
 
 async def fetch_spotify(api_info, spotify_state):
@@ -301,7 +302,8 @@ def main():
     loop.create_task(periodic_task(
         0.01, button_handler, pi, disp, button_state, button_to_pin, clock_state, cyclers))
 
-    loop.create_task(periodic_task(1, api_handler, api_info, spotify_state))
+    loop.create_task(periodic_task(
+        1, api_handler, clock_state, api_info, spotify_state))
 
     loop.create_task(periodic_task(
         0.1, display_handler, disp, clock_state, spotify_state))
