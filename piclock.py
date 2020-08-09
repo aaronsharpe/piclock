@@ -184,11 +184,11 @@ async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyc
 
     for button in button_state.keys():
         if button_state[button] == ButtonState.PRESSED:
-            clock_state, update_display = await button_press_handler(
+            clock_state = await button_press_handler(
                 disp, pi, clock_state, cyclers, button)
         else:
-            update_display = False
-    return clock_state, update_display
+            clock_state['update_display'] = False
+    return clock_state
 
 
 async def check_button_state(pi, button_state, button_to_pin):
@@ -237,20 +237,20 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
             return clock_state, False
 
 
-async def display_handler(update_display, disp, clock_state, spotify_state):
-    print(update_display)
+async def display_handler(disp, clock_state, spotify_state):
+    print(clock_state['update_display'])
     print(spotify_state)
     print(clock_state)
     clock_cur = time.strftime('%H:%M')
     if clock_cur != clock_state['time']:
-        update_display = True
+        clock_state['update_display'] = True
         clock_state['time'] = clock_cur
 
     if spotify_state['is_playing']:
-        update_display = True
+        clock_state['update_display'] = True
 
-    if update_display:
-        update_display = False
+    if clock_state['update_display']:
+        clock_state['update_display'] = False
         if(clock_state['display'] == 'home'):
             display_time(disp, spotify_state, clock_state['color'])
         elif(clock_state['display'] == 'network'):
@@ -258,7 +258,6 @@ async def display_handler(update_display, disp, clock_state, spotify_state):
                 disp, clock_state['net_info'], clock_state['color'])
         elif(clock_state['display'] == 'custom'):
             display_custom(disp, 'fetching data...', clock_state['color'])
-    return update_display
 
 
 async def periodic_task(tau, f, *args):
@@ -287,7 +286,6 @@ def main():
     disp.clear()
     blank_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     disp.ShowImage(blank_screen)
-    update_display = True
 
     # Cycling variables
     bl_cycle = cycle([0, 5, 10, 25, 50, 75, 100])
@@ -296,6 +294,7 @@ def main():
 
     clock_state = {'display': next(display_cycle),
                    'bl_dc': 100, 'color': next(color_cycle)}
+    clock_state['update_display'] = True
     cyclers = {'display': display_cycle,
                'bl_dc': bl_cycle, 'color': color_cycle}
 
@@ -317,12 +316,12 @@ def main():
     loop.create_task(periodic_task(1, api_handler, api_info, spotify_state))
 
     loop.create_task(periodic_task(
-        0.1, display_handler, update_display, disp, clock_state, spotify_state))
+        0.1, display_handler, disp, clock_state, spotify_state))
 
     try:
         loop.run_forever()
     except(KeyboardInterrupt, SystemExit):
-        pass
+        loop.stop()
 
 
 if __name__ == '__main__':
