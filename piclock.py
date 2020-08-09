@@ -16,7 +16,6 @@ from enum import IntEnum
 # retry+backoff for get post
 # only update display with changes in api_state
 # reboot
-# autodim
 # calendar
 # cpu monitor
 # weather
@@ -91,7 +90,7 @@ def display_network(disp, net_info, color):
     disp.ShowImage(network_screen)
 
 
-def display_custom(disp, text, color):
+def display_text(disp, text, color):
     custom_screen = Image.new('RGB', (disp.height, disp.width), (0, 0, 0))
     draw = ImageDraw.Draw(custom_screen)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
@@ -195,7 +194,7 @@ async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyc
 
     for button in button_state.keys():
         if button_state[button] == ButtonState.PRESSED:
-            await button_press_handler(disp, pi, clock_state, cyclers, button)
+            await button_press_handler(pi, disp, clock_state, cyclers, button)
 
 
 async def check_button_state(pi, button_state, button_to_pin):
@@ -212,7 +211,7 @@ async def check_button_state(pi, button_state, button_to_pin):
                 button_state[button] = ButtonState.UNHELD
 
 
-async def button_press_handler(disp, pi, clock_state, cyclers, button):
+async def button_press_handler(pi, disp, clock_state, cyclers, button):
     if button == 'L':
         bl_dc = next(cyclers['bl_dc'])
         clock_state['bl_dc'] = bl_dc
@@ -230,7 +229,7 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
             pass
         elif display == 'network':
             # Reconnect to network
-            display_custom(disp, 'reconnecting...', color)
+            display_text(disp, 'reconnecting...', color)
             os.popen(
                 'sudo ip link set wlan0 down; sleep 5; sudo ip link set wlan0 up')
             await asyncio.sleep(0.1)
@@ -241,11 +240,23 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
             pass
 
 
-async def display_handler(disp, clock_state, spotify_state):
+async def display_handler(pi, disp, clock_state, spotify_state):
     clock_cur = time.strftime('%H:%M')
     if clock_cur != clock_state['time']:
         clock_state['update_display'] = True
         clock_state['time'] = clock_cur
+
+    # auto dimming
+    hour_cur = int(time.strftime('%H'))
+    if 0 <= hour_cur and hour_cur < 8 and not clock_state['auto_dim']:
+        clock_state['auto_dim'] = True
+        clock_state['bl_dc_prev'] = clock_state['bl_dc']
+        clock_state['bl_dc'] = 0
+        pi.set_PWM_dutycycle(24, 0)
+    elif hour_cur > 8 and clock_state['auto_dim']:
+        clock_state['auto_dim'] = False
+        clock_state['bl_dc'] = clock_state['bl_dc_prev']
+        pi.set_PWM_dutycycle(24, clock_state['bl_dc'])
 
     if spotify_state['is_playing']:
         clock_state['update_display'] = True
@@ -258,7 +269,7 @@ async def display_handler(disp, clock_state, spotify_state):
             display_network(
                 disp, clock_state['net_info'], clock_state['color'])
         elif(clock_state['display'] == 'custom'):
-            display_custom(disp, 'fetching data...', clock_state['color'])
+            display_text(disp, 'fetching data...', clock_state['color'])
 
 
 async def periodic_task(tau, f, *args):
@@ -294,7 +305,7 @@ def main():
     color_cycle = cycle(['WHITE', 'RED', 'GREEN', 'BLUE'])
 
     clock_state = {'display': next(display_cycle),
-                   'bl_dc': 100, 'bl_dc_prev': 100, 'color': next(color_cycle)}
+                   'bl_dc': 100, 'bl_dc_prev': 100, 'color': next(color_cycle), 'auto_dim': False}
     clock_state['update_display'] = True
     cyclers = {'display': display_cycle,
                'bl_dc': bl_cycle, 'color': color_cycle}
@@ -310,7 +321,6 @@ def main():
     clock_state['net_info'] = loop.run_until_complete(fetch_net_info())
 
     # Setup and run event loop
-
     loop.create_task(periodic_task(
         0.01, button_handler, pi, disp, button_state, button_to_pin, clock_state, cyclers))
 
@@ -318,7 +328,7 @@ def main():
         1, api_handler, clock_state, api_info, spotify_state))
 
     loop.create_task(periodic_task(
-        0.1, display_handler, disp, clock_state, spotify_state))
+        0.1, display_handler, pi, disp, clock_state, spotify_state))
 
     try:
         loop.run_forever()
