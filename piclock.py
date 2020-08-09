@@ -118,11 +118,11 @@ def string_dims(draw, fontType, string):
 
 
 async def api_handler(api_info, spotify_state):
-    api_info, spotify_state = await fetch_spotify(api_info)
+    api_info, spotify_state = await fetch_spotify(api_info, spotify_state)
     return api_info, spotify_state
 
 
-async def fetch_spotify(api_info):
+async def fetch_spotify(api_info, spotify_state):
     url = 'https://api.spotify.com/v1/me/player/currently-playing'
     headers = {'Authorization': 'Bearer ' + api_info['spotify_access_token'],
                'Accept': 'application/json', 'Content-Type': 'application/json'}
