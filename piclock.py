@@ -210,18 +210,20 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
         bl_dc = next(cyclers['bl_dc'])
         clock_state['bl_dc'] = bl_dc
         pi.set_PWM_dutycycle(24, bl_dc)
-        return clock_state, False
+        return clock_state
     elif button == 'R':
         color = next(cyclers['color'])
         clock_state['color'] = color
-        return clock_state, True
+        clock_state['update_display'] = True
+        return clock_state
     elif button == 'start':
         display = next(cyclers['display'])
         clock_state['display'] = display
-        return clock_state, True
+        clock_state['update_display'] = True
+        return clock_state
     elif button == 'select':
         if display == 'home':
-            return clock_state, False
+            return clock_state
         elif display == 'network':
             # Reconnect to network
             display_custom(disp, 'reconnecting...', color)
@@ -230,9 +232,10 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
             await asyncio.sleep(0.1)
             clock_state['net_info'] = await fetch_net_info()
             await asyncio.sleep(0.1)
-            return clock_state, True
+            clock_state['update_display'] = True
+            return clock_state
         elif display == 'custom':
-            return clock_state, False
+            return clock_state
 
 
 async def display_handler(disp, clock_state, spotify_state):
