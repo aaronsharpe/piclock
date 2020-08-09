@@ -6,11 +6,13 @@ import os
 import json
 from itertools import cycle
 import aiohttp
+import logging
 from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
 from display_driver import ST7789
 from enum import IntEnum
-
+from ssl import SSLCertVerificationError
+import traceback
 
 # TODO
 # retry+backoff for get post
@@ -131,8 +133,11 @@ async def fetch_spotify(api_info, spotify_state):
         try:
             async with aiohttp.ClientSession() as session:
                 resp = await session.request(method='GET', url=url, headers=headers)
-        except:
-            print('timed out: '+url)
+        except SSLCertVerificationError:
+            print('SSLCertVerificationError:'+url)
+            await asyncio.sleep(1)
+        except Exception as e:
+            logging.error(traceback.format_exc())
             await asyncio.sleep(1)
 
     if resp.status == 204:  # valid access code, not active
@@ -164,8 +169,11 @@ async def refresh_spotify_access_token(api_info):
         try:
             async with aiohttp.ClientSession() as session:
                 p = await session.request(method='POST', url=url, data=data, headers=headers)
-        except:
-            print('timed out:'+url)
+        except SSLCertVerificationError:
+            print('SSLCertVerificationError:'+url)
+            await asyncio.sleep(1)
+        except Exception as e:
+            logging.error(traceback.format_exc())
             await asyncio.sleep(1)
 
     pjson = await p.json()
