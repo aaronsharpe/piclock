@@ -178,12 +178,11 @@ async def fetch_net_info():
 
 
 async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyclers):
-    button_state = await check_button_state(pi, button_state, button_to_pin)
+    await check_button_state(pi, button_state, button_to_pin)
 
     for button in button_state.keys():
         if button_state[button] == ButtonState.PRESSED:
-            clock_state = await button_press_handler(
-                disp, pi, clock_state, cyclers, button)
+            await button_press_handler(disp, pi, clock_state, cyclers, button)
 
 
 async def check_button_state(pi, button_state, button_to_pin):
