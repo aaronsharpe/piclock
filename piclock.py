@@ -215,6 +215,7 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
         clock_state['update_display'] = True
     elif button == 'select':
         if display == 'home':
+            pass
         elif display == 'network':
             # Reconnect to network
             display_custom(disp, 'reconnecting...', color)
@@ -225,6 +226,7 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
             await asyncio.sleep(0.1)
             clock_state['update_display'] = True
         elif display == 'custom':
+            pass
 
 
 async def display_handler(disp, clock_state, spotify_state):
