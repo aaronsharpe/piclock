@@ -13,8 +13,8 @@ from enum import IntEnum
 
 
 # TODO
-# async
 # retry+backoff for get post
+# only update display with changes in api_state
 # reboot
 # autodim
 # calendar
@@ -127,8 +127,14 @@ async def fetch_spotify(api_info, spotify_state):
     headers = {'Authorization': 'Bearer ' + api_info['spotify_access_token'],
                'Accept': 'application/json', 'Content-Type': 'application/json'}
 
-    async with aiohttp.ClientSession() as session:
-        resp = await session.request(method='GET', url=url, headers=headers)
+    resp = None
+    while resp is None:
+        try:
+            async with aiohttp.ClientSession() as session:
+                resp = await session.request(method='GET', url=url, headers=headers)
+        except:
+            print('timed out: '+url)
+            await asyncio.sleep(1)
 
     if resp.status == 204:  # valid access code, not active
         spotify_state['is_playing'] = False
@@ -154,8 +160,14 @@ async def refresh_spotify_access_token(api_info):
     data = {'grant_type': 'refresh_token',
             'refresh_token': api_info['spotify_refresh_token']}
 
-    async with aiohttp.ClientSession() as session:
-        p = await session.request(method='POST', url=url, data=data, headers=headers)
+    p = None
+    while p is None:
+        try:
+            async with aiohttp.ClientSession() as session:
+                p = await session.request(method='POST', url=url, data=data, headers=headers)
+        except:
+            print('timed out:'+url)
+            await asyncio.sleep(1)
 
     pjson = await p.json()
     api_info['spotify_access_token'] = pjson['access_token']
@@ -282,7 +294,7 @@ def main():
     color_cycle = cycle(['WHITE', 'RED', 'GREEN', 'BLUE'])
 
     clock_state = {'display': next(display_cycle),
-                   'bl_dc': 100, 'color': next(color_cycle)}
+                   'bl_dc': 100, 'bl_dc_prev': 100, 'color': next(color_cycle)}
     clock_state['update_display'] = True
     cyclers = {'display': display_cycle,
                'bl_dc': bl_cycle, 'color': color_cycle}
