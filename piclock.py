@@ -242,9 +242,6 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
 
 
 async def display_handler(disp, clock_state, spotify_state):
-    print(clock_state['update_display'])
-    print(spotify_state)
-    print(clock_state)
     clock_cur = time.strftime('%H:%M')
     if clock_cur != clock_state['time']:
         clock_state['update_display'] = True
