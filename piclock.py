@@ -131,19 +131,22 @@ async def fetch_spotify(api_info, spotify_state):
         resp = await session.request(method='GET', url=url, headers=headers)
 
     if resp.status == 204:  # valid access code, not active
-        return api_info, {'is_playing': False, 'artist': '', 'song_title': ''}
+        spotify_state['is_playing'] = False
+        spotify_state['artist'] = ''
+        spotify_state['song_title'] = ''
+        return api_info, spotify_state
     elif resp.status == 200:  # valid access code, active
         data = await resp.json()
-        is_playing = data['is_playing']
-        artist = data['item']['artists'][0]['name']
-        song_title = data['item']['name']
-        spotify_state = {'is_playing': is_playing,
-                         'artist': artist, 'song_title': song_title}
+        spotify_state['is_playing'] = data['is_playing']
+        spotify_state['artist'] = data['item']['artists'][0]['name']
+        spotify_state['song_title'] = data['item']['name']
         return api_info, spotify_state
     else:  # invalid access code or other error
         print('Spotify request failed error:' + str(resp.status))
         api_info = await refresh_spotify_access_token(api_info)
-        spotify_state = {'is_playing': False, 'artist': '', 'song_title': ''}
+        spotify_state['is_playing'] = False
+        spotify_state['artist'] = ''
+        spotify_state['song_title'] = ''
         return api_info, spotify_state
 
 
