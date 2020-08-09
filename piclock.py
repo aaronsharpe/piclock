@@ -118,8 +118,7 @@ def string_dims(draw, fontType, string):
 
 
 async def api_handler(api_info, spotify_state):
-    api_info, spotify_state = await fetch_spotify(api_info, spotify_state)
-    return api_info, spotify_state
+    await fetch_spotify(api_info, spotify_state)
 
 
 async def fetch_spotify(api_info, spotify_state):
@@ -134,20 +133,17 @@ async def fetch_spotify(api_info, spotify_state):
         spotify_state['is_playing'] = False
         spotify_state['artist'] = ''
         spotify_state['song_title'] = ''
-        return api_info, spotify_state
     elif resp.status == 200:  # valid access code, active
         data = await resp.json()
         spotify_state['is_playing'] = data['is_playing']
         spotify_state['artist'] = data['item']['artists'][0]['name']
         spotify_state['song_title'] = data['item']['name']
-        return api_info, spotify_state
     else:  # invalid access code or other error
         print('Spotify request failed error:' + str(resp.status))
         api_info = await refresh_spotify_access_token(api_info)
         spotify_state['is_playing'] = False
         spotify_state['artist'] = ''
         spotify_state['song_title'] = ''
-        return api_info, spotify_state
 
 
 async def refresh_spotify_access_token(api_info):
@@ -165,7 +161,6 @@ async def refresh_spotify_access_token(api_info):
 
     with open('.api_info.json', 'w') as f:
         json.dump(api_info, f)
-    return api_info
 
 
 async def fetch_net_info():
@@ -189,7 +184,6 @@ async def button_handler(pi, disp, button_state, button_to_pin, clock_state, cyc
         if button_state[button] == ButtonState.PRESSED:
             clock_state = await button_press_handler(
                 disp, pi, clock_state, cyclers, button)
-    return clock_state
 
 
 async def check_button_state(pi, button_state, button_to_pin):
@@ -205,28 +199,22 @@ async def check_button_state(pi, button_state, button_to_pin):
             elif button_state[button] == ButtonState.RELEASED or button_state[button] == ButtonState.UNHELD:
                 button_state[button] = ButtonState.UNHELD
 
-    return button_state
-
 
 async def button_press_handler(disp, pi, clock_state, cyclers, button):
     if button == 'L':
         bl_dc = next(cyclers['bl_dc'])
         clock_state['bl_dc'] = bl_dc
         pi.set_PWM_dutycycle(24, bl_dc)
-        return clock_state
     elif button == 'R':
         color = next(cyclers['color'])
         clock_state['color'] = color
         clock_state['update_display'] = True
-        return clock_state
     elif button == 'start':
         display = next(cyclers['display'])
         clock_state['display'] = display
         clock_state['update_display'] = True
-        return clock_state
     elif button == 'select':
         if display == 'home':
-            return clock_state
         elif display == 'network':
             # Reconnect to network
             display_custom(disp, 'reconnecting...', color)
@@ -236,9 +224,7 @@ async def button_press_handler(disp, pi, clock_state, cyclers, button):
             clock_state['net_info'] = await fetch_net_info()
             await asyncio.sleep(0.1)
             clock_state['update_display'] = True
-            return clock_state
         elif display == 'custom':
-            return clock_state
 
 
 async def display_handler(disp, clock_state, spotify_state):
@@ -305,7 +291,6 @@ def main():
     with open('.api_info.json', 'r') as f:
         api_info = json.load(f)
     spotify_state = {'is_playing': False, 'artist': '', 'song_title': ''}
-    #api_info, spotify_state = loop.run_until_complete(fetch_spotify(api_info))
     clock_prev = time.strftime('%H:%M')
     clock_state['time'] = clock_prev
     clock_state['net_info'] = loop.run_until_complete(fetch_net_info())
