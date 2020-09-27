@@ -64,7 +64,7 @@ def display_time(disp, spotify_state, color):
         draw.text((x_pos, y_pos),
                   spotify_state['artist'], font=font, fill=color)
 
-    time_date_screen = time_date_screen.rotate(180)
+    time_date_screen = time_date_screen.rotate(0)
     disp.ShowImage(time_date_screen)
 
 
@@ -88,7 +88,7 @@ def display_network(disp, net_info, color):
     y_pos += 30
     draw.text((x_pos, y_pos), "GW: "+net_info[2], font=font, fill=color)
 
-    network_screen = network_screen.rotate(180)
+    network_screen = network_screen.rotate(0)
     disp.ShowImage(network_screen)
 
 
@@ -102,7 +102,7 @@ def display_text(disp, text, color):
     y_pos = 2
     draw.text((x_pos, y_pos), text, font=font, fill=color)
 
-    custom_screen = custom_screen.rotate(180)
+    custom_screen = custom_screen.rotate(0)
     disp.ShowImage(custom_screen)
 
 
